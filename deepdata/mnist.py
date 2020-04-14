@@ -397,10 +397,10 @@ class QMNIST(MNIST):
         # download data files if not already there
         for url, md5 in split:
             filename = url.rpartition('/')[2]
-        file_path = os.path.join(self.raw_folder, filename)
-        if not os.path.isfile(file_path):
-            download_url(url, root=self.raw_folder, filename=filename, md5=md5)
-        files.append(file_path)
+            file_path = os.path.join(self.raw_folder, filename)
+            if not os.path.isfile(file_path):
+                download_url(url, root=self.raw_folder, filename=filename, md5=md5)
+            files.append(file_path)
 
         # process and save as torch files
         print('Processing...')

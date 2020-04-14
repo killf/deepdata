@@ -14,7 +14,12 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/killf/deepdata",
-    packages=setuptools.find_packages(),  # 指定需要安装的模块
+    packages=setuptools.find_packages(),
+    install_requires=[
+        "opencv-python",
+        "numpy",
+        "tqdm"
+    ],
     classifiers=[
         # How mature is this project? Common values are
         # 3 - Alpha

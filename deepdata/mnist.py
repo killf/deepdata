@@ -1,8 +1,5 @@
-from __future__ import print_function
 import warnings
 
-import cv2
-# from PIL import Image
 import os
 import os.path
 import numpy as np

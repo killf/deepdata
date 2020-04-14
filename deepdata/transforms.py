@@ -37,20 +37,18 @@ class DeNormalize:
 
 
 class Resize:
-    def __init__(self, size, padding=None, interpolation=None):
-        if isinstance(size, list) or isinstance(size, tuple):
-            size = tuple(int(i) for i in size)
-        elif isinstance(size, Iterable):
+    def __init__(self, size, padding_value=None, interpolation=None):
+        if isinstance(size, Iterable):
             size = tuple(int(i) for i in size)
         else:
             size = (int(size), int(size))
 
         self.size = size
         self.interpolation = interpolation
-        self.padding = padding
+        self.padding_value = padding_value
 
     def __call__(self, img):
-        if self.padding is None:
+        if self.padding_value is None:
             if self.interpolation is None:
                 return cv2.resize(img, self.size)
             else:
@@ -73,10 +71,10 @@ class Resize:
 
         if len(img.shape) == 2:
             new_img = np.empty(shape=self.size, dtype=img.dtype)
-            new_img.fill(self.padding)
+            new_img.fill(self.padding_value)
         elif len(img.shape) == 3:
             new_img = np.empty(shape=self.size + (img.shape[2],), dtype=img.dtype)
-            new_img.fill(self.padding)
+            new_img.fill(self.padding_value)
         else:
             raise NotImplementedError()
 

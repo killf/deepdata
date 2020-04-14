@@ -1,14 +1,17 @@
 from __future__ import print_function
 import warnings
-from PIL import Image
+
+import cv2
+# from PIL import Image
 import os
 import os.path
 import numpy as np
-import torch
 import codecs
+import pickle
 
 from .dataset import Dataset
 from .utils import download_url, download_and_extract_archive, extract_archive, verify_str_arg
+import deepdata.urls as urls
 
 
 class MNIST(Dataset):
@@ -29,10 +32,14 @@ class MNIST(Dataset):
     """
 
     resources = [
-        ("http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz", "f68b3c2dcbeaaa9fbdd348bbdeb94873"),
-        ("http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz", "d53e105ee54ea40749a09fcbcd1e9432"),
-        ("http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz", "9fb629c4189551a2d022fa330f9573f3"),
-        ("http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz", "ec29112dd5afa0611ce80d1b7f02629c")
+        (urls.MNIST_TRAIN_IMAGES or "http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz",
+         "f68b3c2dcbeaaa9fbdd348bbdeb94873"),
+        (urls.MNIST_TRAIN_LABELS or "http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz",
+         "d53e105ee54ea40749a09fcbcd1e9432"),
+        (urls.MNIST_TEST_IMAGES or "http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz",
+         "9fb629c4189551a2d022fa330f9573f3"),
+        (urls.MNIST_TEST_LABELS or "http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz",
+         "ec29112dd5afa0611ce80d1b7f02629c")
     ]
 
     training_file = 'training.pt'
@@ -80,7 +87,8 @@ class MNIST(Dataset):
             data_file = self.training_file
         else:
             data_file = self.test_file
-        self.data, self.targets = torch.load(os.path.join(self.processed_folder, data_file))
+        with open(os.path.join(self.processed_folder, data_file),"rb") as f:
+            self.data, self.targets = pickle.load(f)
 
     def __getitem__(self, index):
         """
@@ -94,7 +102,7 @@ class MNIST(Dataset):
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
-        img = Image.fromarray(img.numpy(), mode='L')
+        # img = Image.fromarray(img, mode='L')
 
         if self.transform is not None:
             img = self.transform(img)
@@ -151,9 +159,9 @@ class MNIST(Dataset):
             read_label_file(os.path.join(self.raw_folder, 't10k-labels-idx1-ubyte'))
         )
         with open(os.path.join(self.processed_folder, self.training_file), 'wb') as f:
-            torch.save(training_set, f)
+            pickle.dump(training_set, f)
         with open(os.path.join(self.processed_folder, self.test_file), 'wb') as f:
-            torch.save(test_set, f)
+            pickle.dump(test_set, f)
 
         print('Done!')
 
@@ -178,13 +186,17 @@ class FashionMNIST(MNIST):
             target and transforms it.
     """
     resources = [
-        ("http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-images-idx3-ubyte.gz",
+        (urls.FashionMNIST_TRAIN_IMAGES or
+         "http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-images-idx3-ubyte.gz",
          "8d4fb7e6c68d591d4c3dfef9ec88bf0d"),
-        ("http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-labels-idx1-ubyte.gz",
+        (urls.FashionMNIST_TRAIN_LABELS or
+         "http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/train-labels-idx1-ubyte.gz",
          "25c81989df183df01b3e8a0aad5dffbe"),
-        ("http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-images-idx3-ubyte.gz",
+        (urls.FashionMNIST_TEST_IMAGES or
+         "http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-images-idx3-ubyte.gz",
          "bef4ecab320f06d8554ea6380940ec79"),
-        ("http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-labels-idx1-ubyte.gz",
+        (urls.FashionMNIST_TEST_LABELS or
+         "http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/t10k-labels-idx1-ubyte.gz",
          "bb300cfdad3c16e7a12a480ee83cd310")
     ]
     classes = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal',
@@ -208,10 +220,14 @@ class KMNIST(MNIST):
             target and transforms it.
     """
     resources = [
-        ("http://codh.rois.ac.jp/kmnist/dataset/kmnist/train-images-idx3-ubyte.gz", "bdb82020997e1d708af4cf47b453dcf7"),
-        ("http://codh.rois.ac.jp/kmnist/dataset/kmnist/train-labels-idx1-ubyte.gz", "e144d726b3acfaa3e44228e80efcd344"),
-        ("http://codh.rois.ac.jp/kmnist/dataset/kmnist/t10k-images-idx3-ubyte.gz", "5c965bf0a639b31b8f53240b1b52f4d7"),
-        ("http://codh.rois.ac.jp/kmnist/dataset/kmnist/t10k-labels-idx1-ubyte.gz", "7320c461ea6c1c855c0b718fb2a4b134")
+        (urls.KMNIST_TRAIN_IMAGES or "http://codh.rois.ac.jp/kmnist/dataset/kmnist/train-images-idx3-ubyte.gz",
+         "bdb82020997e1d708af4cf47b453dcf7"),
+        (urls.KMNIST_TRAIN_LABELS or "http://codh.rois.ac.jp/kmnist/dataset/kmnist/train-labels-idx1-ubyte.gz",
+         "e144d726b3acfaa3e44228e80efcd344"),
+        (urls.KMNIST_TEST_IMAGES or "http://codh.rois.ac.jp/kmnist/dataset/kmnist/t10k-images-idx3-ubyte.gz",
+         "5c965bf0a639b31b8f53240b1b52f4d7"),
+        (urls.KMNIST_TEST_LABELS or "http://codh.rois.ac.jp/kmnist/dataset/kmnist/t10k-labels-idx1-ubyte.gz",
+         "7320c461ea6c1c855c0b718fb2a4b134")
     ]
     classes = ['o', 'ki', 'su', 'tsu', 'na', 'ha', 'ma', 'ya', 're', 'wo']
 
@@ -239,7 +255,7 @@ class EMNIST(MNIST):
     # _official_ download link
     # https://cloudstor.aarnet.edu.au/plus/s/ZNmuFiuQTqZlu9W/download
     # is (currently) unavailable
-    url = 'http://www.itl.nist.gov/iaui/vip/cs_links/EMNIST/gzip.zip'
+    url = urls.EMNIST or 'http://www.itl.nist.gov/iaui/vip/cs_links/EMNIST/gzip.zip'
     md5 = "58c8d27c78d21e728a6bc7b3cc06412e"
     splits = ('byclass', 'bymerge', 'balanced', 'letters', 'digits', 'mnist')
 
@@ -288,9 +304,9 @@ class EMNIST(MNIST):
                 read_label_file(os.path.join(gzip_folder, 'emnist-{}-test-labels-idx1-ubyte'.format(split)))
             )
             with open(os.path.join(self.processed_folder, self._training_file(split)), 'wb') as f:
-                torch.save(training_set, f)
+                pickle.dump(training_set, f)
             with open(os.path.join(self.processed_folder, self._test_file(split)), 'wb') as f:
-                torch.save(test_set, f)
+                pickle.dump(test_set, f)
         shutil.rmtree(gzip_folder)
 
         print('Done!')
@@ -335,17 +351,23 @@ class QMNIST(MNIST):
         'nist': 'nist'
     }
     resources = {
-        'train': [('https://raw.githubusercontent.com/facebookresearch/qmnist/master/qmnist-train-images-idx3-ubyte.gz',
+        'train': [(urls.QMNIST_TRAIN_IMAGES or
+                   'https://raw.githubusercontent.com/facebookresearch/qmnist/master/qmnist-train-images-idx3-ubyte.gz',
                    'ed72d4157d28c017586c42bc6afe6370'),
-                  ('https://raw.githubusercontent.com/facebookresearch/qmnist/master/qmnist-train-labels-idx2-int.gz',
+                  (urls.QMNIST_TRAIN_LABELS or
+                   'https://raw.githubusercontent.com/facebookresearch/qmnist/master/qmnist-train-labels-idx2-int.gz',
                    '0058f8dd561b90ffdd0f734c6a30e5e4')],
-        'test': [('https://raw.githubusercontent.com/facebookresearch/qmnist/master/qmnist-test-images-idx3-ubyte.gz',
+        'test': [(urls.QMNIST_TEST_IMAGES or
+                  'https://raw.githubusercontent.com/facebookresearch/qmnist/master/qmnist-test-images-idx3-ubyte.gz',
                   '1394631089c404de565df7b7aeaf9412'),
-                 ('https://raw.githubusercontent.com/facebookresearch/qmnist/master/qmnist-test-labels-idx2-int.gz',
+                 (urls.QMNIST_TEST_LABELS or
+                  'https://raw.githubusercontent.com/facebookresearch/qmnist/master/qmnist-test-labels-idx2-int.gz',
                   '5b5b05890a5e13444e108efe57b788aa')],
-        'nist': [('https://raw.githubusercontent.com/facebookresearch/qmnist/master/xnist-images-idx3-ubyte.xz',
+        'nist': [(urls.QMNIST_NIST_IMAGES or
+                  'https://raw.githubusercontent.com/facebookresearch/qmnist/master/xnist-images-idx3-ubyte.xz',
                   '7f124b3b8ab81486c9d8c2749c17f834'),
-                 ('https://raw.githubusercontent.com/facebookresearch/qmnist/master/xnist-labels-idx2-int.xz',
+                 (urls.QMNIST_NIST_LABELS or
+                  'https://raw.githubusercontent.com/facebookresearch/qmnist/master/xnist-labels-idx2-int.xz',
                   '5ed0e788978e45d4a8bd4b7caec3d79d')]
     }
     classes = ['0 - zero', '1 - one', '2 - two', '3 - three', '4 - four',
@@ -383,7 +405,7 @@ class QMNIST(MNIST):
         # process and save as torch files
         print('Processing...')
         data = read_sn3_pascalvincent_tensor(files[0])
-        assert (data.dtype == torch.uint8)
+        assert (data.dtype == np.uint8)
         assert (data.ndimension() == 3)
         targets = read_sn3_pascalvincent_tensor(files[1]).long()
         assert (targets.ndimension() == 2)
@@ -394,12 +416,11 @@ class QMNIST(MNIST):
             data = data[10000:, :, :].clone()
         targets = targets[10000:, :].clone()
         with open(os.path.join(self.processed_folder, self.data_file), 'wb') as f:
-            torch.save((data, targets), f)
+            pickle.dump((data, targets), f)
 
     def __getitem__(self, index):
         # redefined to handle the compat flag
         img, target = self.data[index], self.targets[index]
-        img = Image.fromarray(img.numpy(), mode='L')
         if self.transform is not None:
             img = self.transform(img)
         if self.compat:
@@ -420,7 +441,7 @@ def open_maybe_compressed_file(path):
     """Return a file object that possibly decompresses 'path' on the fly.
        Decompression occurs when argument `path` is a string and ends with '.gz' or '.xz'.
     """
-    if not isinstance(path, torch._six.string_classes):
+    if not isinstance(path, str):
         return path
     if path.endswith('.gz'):
         import gzip
@@ -438,12 +459,12 @@ def read_sn3_pascalvincent_tensor(path, strict=True):
     # typemap
     if not hasattr(read_sn3_pascalvincent_tensor, 'typemap'):
         read_sn3_pascalvincent_tensor.typemap = {
-            8: (torch.uint8, np.uint8, np.uint8),
-            9: (torch.int8, np.int8, np.int8),
-            11: (torch.int16, np.dtype('>i2'), 'i2'),
-            12: (torch.int32, np.dtype('>i4'), 'i4'),
-            13: (torch.float32, np.dtype('>f4'), 'f4'),
-            14: (torch.float64, np.dtype('>f8'), 'f8')}
+            8: (np.uint8, np.uint8),
+            9: (np.int8, np.int8),
+            11: (np.dtype('>i2'), 'i2'),
+            12: (np.dtype('>i4'), 'i4'),
+            13: (np.dtype('>f4'), 'f4'),
+            14: (np.dtype('>f8'), 'f8')}
     # read
     with open_maybe_compressed_file(path) as f:
         data = f.read()
@@ -455,22 +476,22 @@ def read_sn3_pascalvincent_tensor(path, strict=True):
     assert ty >= 8 and ty <= 14
     m = read_sn3_pascalvincent_tensor.typemap[ty]
     s = [get_int(data[4 * (i + 1): 4 * (i + 2)]) for i in range(nd)]
-    parsed = np.frombuffer(data, dtype=m[1], offset=(4 * (nd + 1)))
+    parsed = np.frombuffer(data, dtype=m[0], offset=(4 * (nd + 1)))
     assert parsed.shape[0] == np.prod(s) or not strict
-    return torch.from_numpy(parsed.astype(m[2], copy=False)).view(*s)
+    return parsed.astype(m[1], copy=False).reshape(*s)
 
 
 def read_label_file(path):
     with open(path, 'rb') as f:
         x = read_sn3_pascalvincent_tensor(f, strict=False)
-    assert (x.dtype == torch.uint8)
-    assert (x.ndimension() == 1)
-    return x.long()
+    assert (x.dtype == np.uint8)
+    assert (x.ndim == 1)
+    return x.astype(np.int32)
 
 
 def read_image_file(path):
     with open(path, 'rb') as f:
         x = read_sn3_pascalvincent_tensor(f, strict=False)
-    assert (x.dtype == torch.uint8)
-    assert (x.ndimension() == 3)
+    assert (x.dtype == np.uint8)
+    assert (x.ndim == 3)
     return x

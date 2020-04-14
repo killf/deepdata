@@ -1,6 +1,26 @@
-__all__ = ["urls"]
+CIFAR10 = None
+CIFAR100 = None
 
-urls = {
-    "CIFAR10": "http://pytorch_mirror.killf.info/torchvision/cifar/cifar-10-python.tar.gz",
-    "CIFAR100": "http://pytorch_mirror.killf.info/torchvision/cifar/cifar-100-python.tar.gz"
-}
+MNIST_TRAIN_IMAGES = None
+MNIST_TRAIN_LABELS = None
+MNIST_TEST_IMAGES = None
+MNIST_TEST_LABELS = None
+
+FashionMNIST_TRAIN_IMAGES = None
+FashionMNIST_TRAIN_LABELS = None
+FashionMNIST_TEST_IMAGES = None
+FashionMNIST_TEST_LABELS = None
+
+KMNIST_TRAIN_IMAGES = None
+KMNIST_TRAIN_LABELS = None
+KMNIST_TEST_IMAGES = None
+KMNIST_TEST_LABELS = None
+
+EMNIST = None
+
+QMNIST_TRAIN_IMAGES = None
+QMNIST_TRAIN_LABELS = None
+QMNIST_TEST_IMAGES = None
+QMNIST_TEST_LABELS = None
+QMNIST_NIST_IMAGES = None
+QMNIST_NIST_LABELS = None

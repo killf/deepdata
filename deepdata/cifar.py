@@ -6,7 +6,7 @@ import cv2
 
 from .dataset import Dataset
 from .utils import download_and_extract_archive, check_md5
-from .urls import urls
+import deepdata.urls as urls
 
 
 class CIFAR10(Dataset):
@@ -27,7 +27,7 @@ class CIFAR10(Dataset):
 
     """
     base_folder = 'cifar-10-batches-py'
-    url = urls.get("CIFAR10", "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz")
+    url = urls.CIFAR10 or "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
     filename = "cifar-10-python.tar.gz"
     tgz_md5 = 'c58f30108f718f92721af3b95e74349a'
     train_list = [
@@ -149,7 +149,7 @@ class CIFAR100(CIFAR10):
     This is a subclass of the `CIFAR10` Dataset.
     """
     base_folder = 'cifar-100-python'
-    url = urls.get("CIFAR100", "https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz")
+    url = urls.CIFAR100 or "https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz"
     filename = "cifar-100-python.tar.gz"
     tgz_md5 = 'eb9058c3a382ffc7106e4002c42a8d85'
     train_list = [

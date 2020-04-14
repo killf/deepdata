@@ -34,16 +34,21 @@ def default_collate(batch):
 
 
 class DataLoader:
-    def __init__(self, generator, batch_size=4, maxsize=32, collate_fn=default_collate, shuffle=False):
+    def __init__(self, generator, batch_size=4, maxsize=32, collate_fn=default_collate, shuffle=False, seed=None):
         self.generator = generator
         self.batch_size = batch_size
         self.maxsize = maxsize
         self.collate_fn = collate_fn
         self.num_worker = 1
         self.shuffle = shuffle
+        self.seed = seed
 
     def __iter__(self):
         def sample_generator(generator, r, w, count, tid):
+            if self.seed is not None:
+                random.seed(self.seed + tid)
+                np.random.seed(self.seed + tid)
+
             idx_ls = list(range(len(generator)))
             if self.shuffle:
                 random.shuffle(idx_ls)

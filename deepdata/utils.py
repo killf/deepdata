@@ -166,3 +166,24 @@ def download_and_extract_archive(url, download_root, extract_root=None, filename
     archive = os.path.join(download_root, filename)
     print("Extracting {} to {}".format(archive, extract_root))
     extract_archive(archive, extract_root, remove_finished)
+
+
+def iterable_to_str(iterable):
+    return "'" + "', '".join([str(item) for item in iterable]) + "'"
+
+
+def verify_str_arg(value, arg=None, valid_values=None, custom_msg=None):
+    if valid_values is None:
+        return value
+
+    if value not in valid_values:
+        if custom_msg is not None:
+            msg = custom_msg
+        else:
+            msg = ("Unknown value '{value}' for argument {arg}. "
+                   "Valid values are {{{valid_values}}}.")
+            msg = msg.format(value=value, arg=arg,
+                             valid_values=iterable_to_str(valid_values))
+        raise ValueError(msg)
+
+    return value

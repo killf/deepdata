@@ -1,6 +1,5 @@
-from multiprocessing import Process, Pipe, Value
+from multiprocessing import Process, SimpleQueue, Value
 import time
-import os
 import random
 import numpy as np
 
@@ -34,17 +33,18 @@ def default_collate(batch):
 
 
 class DataLoader:
-    def __init__(self, generator, batch_size=4, maxsize=32, collate_fn=default_collate, shuffle=False, seed=None):
+    def __init__(self, generator, batch_size=0, maxsize=-1, shuffle=False, num_worker=1, collate_fn=default_collate,
+                 seed=None):
         self.generator = generator
-        self.batch_size = batch_size
-        self.maxsize = maxsize
+        self.batch_size = max(0, int(batch_size))
+        self.num_worker = max(1, int(num_worker))
+        self.maxsize = min(1, self.batch_size) * self.num_worker * 2 if maxsize < 0 else maxsize
         self.collate_fn = collate_fn
-        self.num_worker = 1
         self.shuffle = shuffle
         self.seed = seed
 
     def __iter__(self):
-        def sample_generator(generator, r, w, count, tid):
+        def sample_generator(generator, data_queue, count, tid):
             if self.seed is not None:
                 random.seed(self.seed + tid)
                 np.random.seed(self.seed + tid)
@@ -57,31 +57,44 @@ class DataLoader:
                 if i % self.num_worker != tid:
                     continue
 
-                while count.value >= self.maxsize:
+                while count.value >= self.maxsize > 0:
                     time.sleep(0.02)
                     continue
 
-                w.send(generator[i])
+                data_queue.put(generator[i])
                 with count.get_lock():
                     count.value += 1
 
-            w.send(StopGenerator(pid=os.getpid()))
+            data_queue.put(StopGenerator(pid=tid))
             with count.get_lock():
                 count.value += 1
 
-        r, w = Pipe(True)
+        data_queue = SimpleQueue()
         count = Value('i', 0)
 
         process_map = dict()
         for tid in range(self.num_worker):
-            process = Process(target=sample_generator, args=(self.generator, r, w, count, tid))
+            process = Process(target=sample_generator, args=(self.generator, data_queue, count, tid))
+            process.daemon = True
             process.start()
-            process_map[process.pid] = process
+            process_map[tid] = process
+
+        def single_generator():
+            while len(process_map) > 0:
+                item = data_queue.get()
+                with count.get_lock():
+                    count.value -= 1
+
+                if isinstance(item, StopGenerator):
+                    del process_map[item.pid]
+                    continue
+
+                yield item
 
         def parallel_generator():
             result = []
             while len(process_map) > 0:
-                item = r.recv()
+                item = data_queue.get()
                 with count.get_lock():
                     count.value -= 1
 
@@ -97,4 +110,4 @@ class DataLoader:
                     yield result
                     result = []
 
-        return parallel_generator()
+        return parallel_generator() if self.batch_size else single_generator()

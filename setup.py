@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="deepdata",
-    version="0.1.0",
+    version="0.2.0",
     license="Apache License",
     author="killf",
     author_email="killf@foxmail.com",
@@ -14,7 +14,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/killf/deepdata",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude="test/"),
     install_requires=[
         "opencv-python",
         "numpy",

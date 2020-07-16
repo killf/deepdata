@@ -52,14 +52,15 @@ class CSVImageFolder(Dataset):
         return img, label
 
 
-# if __name__ == '__main__':
-#     transform = transforms.Compose([
-#         transforms.Resize((224, 224), padding=255),
-#         transforms.Normalize(0, 255)
-#     ])
-#
-#     my_dataset = CSVImageFolder("/home/killf/dlab/paddle_caltech101/data", "Train.txt", img_dir="Images",
-#                                 transform=transform)
-#     my_loader = DataLoader(my_dataset, shuffle=True)
-#     for img, label in my_loader:
-#         pass
+if __name__ == '__main__':
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.Normalize(0, 255)
+    ])
+
+    my_dataset = CSVImageFolder("/home/killf/dlab/paddle_caltech101/data", "Train.txt", img_dir="Images",
+                                transform=transform)
+    my_loader = DataLoader(my_dataset, shuffle=True)
+    for img, label in my_loader:
+        print(img.shape)
+        pass

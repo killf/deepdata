@@ -12,24 +12,29 @@ class StopGenerator:
 
 
 def default_collate(batch):
-    if batch is None or not isinstance(batch, list) or len(batch) == 0:
+    if not batch or not isinstance(batch, list):
         return batch
 
-    result = [[] for _ in range(len(batch[0]))]
-    for items in batch:
-        for idx, item in enumerate(items):
-            result[idx].append(item)
+    if isinstance(batch[0], tuple):
+        result = [[] for _ in range(len(batch[0]))]
+        for items in batch:
+            for idx, item in enumerate(items):
+                result[idx].append(item)
 
-    result_cvt = []
-    for i in range(len(result)):
-        if isinstance(result[i][0], np.ndarray):
-            result_cvt.append(np.stack(result[i]))
-        elif isinstance(result[i][0], float) or isinstance(result[i][0], int):
-            result_cvt.append(np.array(result[i]))
-        else:
-            result_cvt.append(result[i])
-
-    return tuple(result_cvt)
+        result_cvt = []
+        for i in range(len(result)):
+            if isinstance(result[i][0], np.ndarray):
+                result_cvt.append(np.stack(result[i]))
+            elif isinstance(result[i][0], (float, int)):
+                result_cvt.append(np.array(result[i]))
+            else:
+                result_cvt.append(result[i])
+        return tuple(result_cvt)
+    elif isinstance(batch[0], np.ndarray):
+        return np.stack(batch)
+    elif isinstance(batch[0], (float, int)):
+        return np.array(batch)
+    return batch
 
 
 class DataLoader:
